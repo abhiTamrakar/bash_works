@@ -30,9 +30,6 @@ node('master'){
 				
 		stage 'Build_Backend_Code'
                 echo "Running: Build_Backend_Code"
-                def mvnHome = tool 'Maven 3.3'
-                sh "echo $branch_name"
-                echo "${mvnHome}"
 		sh "uname -a"
                 echo "GGGGot it"
 }
