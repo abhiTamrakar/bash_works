@@ -13,6 +13,7 @@ node('master'){
 
         try
         {
+		echo "checking ${git_branch_name}"
                 git branch: "${git_branch_name}", credentialsId: '', url: 'https://github.com/come2abhi/abhixcripts.git'
         }
         catch(Exception e)
