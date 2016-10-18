@@ -40,7 +40,7 @@ node('master'){
         {
                 stage 'Email Notification'
                 println "ERROR: Continuous Integration pipeline failed"
-                sh "git log --after 1.days.ago|egrep -io '[a-z0-9\-\._@]++\.[a-z0-9]{1,4}'|head -1 >lastAuthor"
+                sh "git log --after 1.days.ago|egrep -io '[a-z0-9-._@]++\.[a-z0-9]{1,4}'|head -1 >lastAuthor"
 		def lines = readFile("lastAuthor")
                 println "Email notifications will be send to : ${lines}"
                 mail bcc: '', body: "ILP code did not succesfully pass the build and unit-test jobs in the Continuous Integration pipeline.\nFor more details go to : ${error_url} ", cc: 'abhishek.tamrakar08@gmail.com', charset: 'UTF-8', from: '', mimeType: 'text/plain', replyTo: '', subject: "Failed Build Report- ${git_branch_name}", to: "${lines}"
