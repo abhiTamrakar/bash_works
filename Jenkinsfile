@@ -14,9 +14,13 @@ node('master'){
         try
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
 		echo "checking ${git_branch_name}"
 =======
 >>>>>>> testbr
+=======
+		echo "checking ${git_branch_name}"
+>>>>>>> testbr2
                 git branch: "${git_branch_name}", credentialsId: '', url: 'https://github.com/come2abhi/abhixcripts.git'
         }
         catch(Exception e)
@@ -34,11 +38,14 @@ node('master'){
 		stage 'Build_Backend_Code'
                 echo "Running: Build_Backend_Code"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
                 def mvnHome = tool 'Maven 3.3'
                 sh "echo $branch_name"
                 echo "${mvnHome}"
 >>>>>>> testbr
+=======
+>>>>>>> testbr2
 		sh "uname -a"
                 echo "GGGGot it"
 }
@@ -47,10 +54,14 @@ node('master'){
                 stage 'Email Notification'
                 println "ERROR: Continuous Integration pipeline failed"
 <<<<<<< HEAD
+<<<<<<< HEAD
                 sh "git log --after 1.days.ago|egrep -io '[a-z0-9\\-\\._@]++\\.[a-z0-9]{1,4}'|head -1 >lastAuthor"
 =======
                 sh "git log --after 1.days.ago|egrep -io '[a-z0-9\-\._@]++\.[a-z0-9]{1,4}'|head -1 >lastAuthor"
 >>>>>>> testbr
+=======
+                sh "git log --after 1.days.ago|egrep -io '[a-z0-9\\-\\._@]++\\.[a-z0-9]{1,4}'|head -1 >lastAuthor"
+>>>>>>> testbr2
 		def lines = readFile("lastAuthor")
                 println "Email notifications will be send to : ${lines}"
                 mail bcc: '', body: "ILP code did not succesfully pass the build and unit-test jobs in the Continuous Integration pipeline.\nFor more details go to : ${error_url} ", cc: 'abhishek.tamrakar08@gmail.com', charset: 'UTF-8', from: '', mimeType: 'text/plain', replyTo: '', subject: "Failed Build Report- ${git_branch_name}", to: "${lines}"
