@@ -25,7 +25,7 @@ checkNreadseq()
 {
 cat << _EOF_
 
-USAGE: ${0##*/} [no. of passwords to generate]
+USAGE: ${0##*/} [no. of passwords to generate] [length of password]
 
 _EOF_
 
@@ -35,7 +35,7 @@ read -p "Enter No of Passwords To Generate: " n
 
 passw()
 {
-LENGTH=8
+LENGTH=$this_length
 MIN_U=1
 MIN_L=1
 MIN_D=1
@@ -65,6 +65,7 @@ fi
 }
 
 [[ ! $1 ]] && checkNreadseq || n=$1
+[[ ! $2 ]] && this_length=8 || this_length=$2
 
 for j in $(seq $n)
 do
