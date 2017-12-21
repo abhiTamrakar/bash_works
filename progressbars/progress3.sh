@@ -69,7 +69,7 @@ esac
 while [ $n -ge $i ]; do
  calcPer $i
  echo -en " checking $i/$n \r"
- sleep 1
+ sleep .5
  case ${per%.*} in
          [0-5])                 p='   ';;
          [6-9]|10)              p='       ';;
@@ -82,7 +82,7 @@ while [ $n -ge $i ]; do
  esac
  echo -ne " progress: [\e[48;5;${code}m$p\e[0m \c"
  echo -ne "${per%.*}%]\r"
-# sleep 1
+# sleep .5
  echo $((i+=1)) >/dev/null
 done
 echo

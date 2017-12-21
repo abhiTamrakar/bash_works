@@ -20,7 +20,7 @@ calcPer()
 while [ $n -ge $i ]; do
  calcPer $i
  echo -en "checking status of $i/$n \t[${per%.*}%]\r"
- sleep 2
+ sleep .5
  echo $((i+=1)) >/dev/null
 done
 echo

@@ -10,6 +10,9 @@
 
 n=$1
 i=0
+sp="#/-\|"
+
+#
 calcPer()
 {
  local c=$1
@@ -31,7 +34,7 @@ while [ $n -ge $i ]; do
          8[1-9]|9[0-5])         p='#######################';;
          9[6-9]|100)            p='############################';;
  esac
- echo -ne "[ progress: $p  \c"
+ echo -ne "[ progress: $p${sp:j++%${#sp}:1} \c"
  echo -ne "${per%.*}%]\r"
  sleep .2
  echo $((i+=1)) >/dev/null
