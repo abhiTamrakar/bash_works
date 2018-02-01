@@ -53,23 +53,28 @@ gethashes()
 local_input=$1
 echo $((local_input+=1)) > /dev/null
 
-local_percent=$(echo "scale=1;$local_input / $pass_quantity * 100"|bc -l)
+local_percent=$(echo "scale=2;$local_input / $pass_quantity * 100"|bc -l)
 
-case $local_percent in
-[0-9].0|1[0-9].0|20.0)
-get_hashes="[=========>                             ]";;
-2[1-9].0|3[0-9].0|40.0)
-get_hashes="[===============>                       ]";;
-4[1-9].0|5[0-9].0|60.0)
-get_hashes="[====================>                  ]";;
-6[1-9].0|7[0-9].0|80.0)
-get_hashes="[==========================>            ]";;
-8[1-9].0)
-get_hashes="[================================>      ]";;
-9[0-9].0|100.0)
-get_hashes="[=======================================]";;
-esac
-echo -ne "${get_hashes} ${local_percent}%\r"
+ case ${local_percent%.*} in
+         [0-5])                 p='    '
+				e='==========================';;
+         [6-9]|10)              p='       '
+				e='=======================';;
+         1[1-9]|20)             p='          '
+				e='===================';;
+         2[1-9]|3[0-9]|40)      p='           '
+				e='==================';;
+         4[1-9]|5[0-9]|60)      p='             '
+				e='=================';;
+         6[1-9]|7[0-9]|80)      p='                   '
+				e='==========';;
+         8[1-9]|9[0-9])         p='                       '
+				e='======';;
+         100)		        p='                             '
+				e='';;
+ esac
+ echo -ne " progress: [\e[48;5;15m$p\e[0m$e \c"
+ echo -ne "${local_percent%.*}%]\r"
 }
 
 info()
@@ -225,7 +230,7 @@ slen=$(( ( RANDOM % ${one_less_word:-4} )  + 1 ))
 		gethashes ${#sized_words[@]}
 		sleep 1s
 	else
-	echo -ne "Start Time=> $thistime, Elapsed Time => $(date +%T) \r"
+	echo -ne "Start Time: ${thistime}, Elapsed Time => $(date +%T) \r"
 	fi
 done
 
