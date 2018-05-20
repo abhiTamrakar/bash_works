@@ -1,10 +1,10 @@
-#!/bin/bash - 
+#!/bin/bash -
 #===============================================================================
 #
 #          FILE: genSSLcsr.sh
-# 
-#         USAGE: ./genSSLcsr.sh [options] 
-# 
+#
+#         USAGE: ./genSSLcsr.sh [options]
+#
 #   DESCRIPTION: ++++version 1.0.2
 # 		Fixed few bugs from previous script
 #		+Removing passphrase after CSR generation
@@ -14,16 +14,20 @@
 # 		Fixed line breaks
 # 		Work directory to be created at the start
 # 		Used getopts for better code arrangements
-# 
+#   ++++1.0.4
+#     Added mail feature (experimental at this time and needs
+#     a mail server running locally.)
+#     Added domain input and certificate subject inputs
+#
 #       OPTIONS: ---
-#  REQUIREMENTS: ---
+#  REQUIREMENTS: openssl, mailx
 #          BUGS: ---
 #         NOTES: ---
 #        AUTHOR: Abhishek Tamrakar (), abhishek.tamrakar08@gmail.com
 #  ORGANIZATION: Self
 #       CREATED: 6/24/2016
-#      REVISION: 3
-# COPYRIGHT AND 
+#      REVISION: 4
+# COPYRIGHT AND
 #	LICENSE: Copyright (C) 2016 Abhishek Tamrakar
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -50,10 +54,11 @@ TFOUND=0
 CFOUND=0
 MFOUND=0
 XFOUND=0
+SFOUND=0
 logdir=/var/log
 # edit these below values to replace with yours
-homedir=
-yourdomain=
+homedir=''
+yourdomain=''
 country=IN
 state=Maharashtra
 locality=Pune
@@ -68,28 +73,28 @@ OS=$(egrep -io 'Redhat|centos|fedora|ubuntu' /etc/issue)
 
 info()
 {
-printf '\n%s\t%s\t' "INFO" "$@"
+  printf '\n%s\t%s\t' "INFO" "$@"
 }
 
 #exit on error with a custom error message
 #the extra function was removed and replaced withonly one.
-#using FAILED\n\e<message> is a way but not necessarily required. 
+#using FAILED\n\e<message> is a way but not necessarily required.
 #
 
 fatal()
 {
  printf '\n%s\t%s\n' "ERROR" "$@"
-	exit 1
+ exit 1
 }
 
 checkperms()
 {
 if [[ -z ${homedir} ]]; then
-homedir=$(pwd) 
+homedir=$(pwd)
 fi
-if [[ -w ${homedir} ]]; then 
+if [[ -w ${homedir} ]]; then
 info "Permissions acquired for ${SCRIPT} on ${homedir}."
-else 
+else
 fatal "InSufficient permissions to run the ${SCRIPT}."
 fi
 }
@@ -97,7 +102,7 @@ fi
 checkDomain()
 {
 info "Initializing Domain ${cn} check ? "
-if [[ ! -z ${yourdomain} ]]; then 
+if [[ ! -z ${yourdomain} ]]; then
 workdir=${homedir}/${yourdomain}
 echo -e "${cn}"|grep -E -i -q "${yourdomain}$" && echo -n "[OK]" || fatal "InValid domain in ${cn}"
 else
@@ -110,27 +115,37 @@ fi
 
 usage()
 {
-cat << EOF 
+cat << EOF
 
-	Usage: 	$SCRIPT [options]
-			[-c <common name>] 
-			[-h (help)]
-			[-x (optional)]
+Usage: 	$SCRIPT [options] -[cdmshx]
+  [-c (common name)]
+  [-d (domain name)]
+  [-s (SSL certificate subject)]
+  [-m (email address)]
+  [-h (help)]
+  [-x (optional)]
 
-	Command line switches are optional. The following switches are recognized.
+[OPTIONS]
+  -c|   Sets the value for common name.
+        A valid common name is something that ends with 'xyz.com'
 
-	-c	--Sets the value for common name.
-		A valid common name is something that ends with 'xyz.com'
+  -d|   Sets the domain name.
 
-	-x 	--Creates the certificate request and key but do not print on screen.
-       		To be used when script is used just to create the key and CSR with no need
-		+ to generate the certficate on the go. 	
+  -s|   Sets the subject to be applied to the certificates.
+        '/C=country/ST=state/L=locality/O=organization/OU=organizationalunit/emailAddress=email'
 
-	-h  	--Displays the usage. No further functions are performed.
+  -m|    Sets the mailing capability to the script.
 
-	Example: $SCRIPT -c mywebsite.xyz.com -m myemail@mydomain.com
+  -x|   Creates the certificate request and key but do not print on screen.
+        To be used when script is used just to create the key and CSR with no need
+        + to generate the certficate on the go.
+
+  -h|   Displays the usage. No further functions are performed.
+
+  Example: $SCRIPT -c mywebsite.xyz.com -m myemail@mydomain.com
 
 EOF
+exit 1
 }	# end usage
 
 confirmUserAction() {
@@ -145,18 +160,57 @@ esac
 done
 }	# end function confirmUserAction
 
+parseSubject()
+{
+  local subject="$1"
+  parsedsubject=$(echo $subject|sed 's/\// /g;s/^ //g')
+  for i in ${parsedsubject}; do
+      case ${i%%=*} in
+        'C' )
+        country=${i##*=}
+        ;;
+        'ST' )
+        state=${i##*=}
+        ;;
+        'L' )
+        locality=${i##*=}
+        ;;
+        'O' )
+        organization=${i##*=}
+        ;;
+        'OU' )
+        organizationalunit=${i##*=}
+        ;;
+        'emailAddress' )
+        email=${i##*=}
+      ;;
+    esac
+  done
+}
+
+sendMail()
+{
+ mailcmd=$(which mailx)
+ if [[ x"$mailcmd" = "x" ]]; then
+   fatal "Cannot send email! please install mailutils for linux"
+ else
+   echo "SSL CSR attached." | $mailcmd -s "SSL certificate request" \
+   -t $email $ccemail -A ${workdir}/${cn}.csr \
+   && info "mail sent" \
+   || fatal "error in sending mail."
+ fi
+}
 genCSRfile()
 {
 info "Creating signed key request for ${cn}"
-
 #Generate a key
 openssl genrsa -des3 -passout pass:$password -out ${workdir}/${cn}.key 4096 -noout 2>/dev/null && echo -n "[DONE]" || fatal "unable to generate key"
 
 #Create the request
 info "Creating Certificate request for ${cn}"
 openssl req -new -key ${workdir}/${cn}.key -passin pass:$password -sha1 -nodes \
-	-subj "/C=$country/ST=$state/L=$locality/O=${organization}/OU=${organizationalunit}/CN=${cn}/emailAddress=$email" \
-	-out ${workdir}/${cn}.csr 2>/dev/null && echo -n "[DONE]" || fatal "unable to create request"
+	-subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$cn/emailAddress=$email" \
+	-out ${workdir}/${cn}.csr && echo -n "[DONE]" || fatal "unable to create request"
 
 #Remove passphrase from the key. Comment the line out to keep the passphrase
 info "Removing passphrase from ${cn}.key"
@@ -172,13 +226,13 @@ mv ${workdir}/${cn}.insecure ${workdir}/${cn}.key && echo -n "[DONE]" || fatal "
 printCSR()
 {
 if [[ -e ${workdir}/${cn}.csr ]] && [[ -e ${workdir}/${cn}.key ]]
-then 
+then
 echo -e "\n\n----------------------------CSR-----------------------------"
 cat ${workdir}/${cn}.csr
 echo -e "\n----------------------------KEY-----------------------------"
 cat ${workdir}/${cn}.key
 echo -e "------------------------------------------------------------\n"
-else 
+else
 fatal "CSR or KEY generation failed !!"
 fi
 }
@@ -193,16 +247,27 @@ fi
 
 #Organisational details
 
-while getopts ":c:hx" atype
+while getopts ":c:d:s:m:hx" atype
 do
 case $atype in
 c )
 	CFOUND=1
 	cn="$OPTARG"
 	;;
+d )
+  yourdomain="$OPTARG"
+  ;;
+s )
+  SFOUND=1
+  subj="$OPTARG"
+  ;;
+m )
+  MFOUND=1
+  ccemail="$OPTARG"
+  ;;
 x )
 	XFOUND=1
-	;;
+  ;;
 h )
 	usage
 	;;
@@ -220,24 +285,26 @@ shift $(($OPTIND - 1))
 
 if [ $CFOUND -eq 1 ]
 then
-
-# take current dir as homedir by default. 
+# take current dir as homedir by default.
 checkperms ${homedir}
 checkDomain
 
-if [[ ! -d ${workdir} ]] 
-then
-mkdir ${workdir:-${cn#*.}} 2>/dev/null && info "${workdir} created." 
-else
-info "${workdir} exists."
-fi # end workdir check
-
-genCSRfile
-if [ $XFOUND -eq 0 ]
-then 
-sleep 2
-printCSR
-fi	# end x check
+  if [[ ! -d ${workdir} ]]
+  then
+    mkdir ${workdir:-${cn#*.}} 2>/dev/null && info "${workdir} created."
+  else
+    info "${workdir} exists."
+  fi # end workdir check
+  parseSubject "$subj"
+  genCSRfile
+  if [ $XFOUND -eq 0 ]
+  then
+    sleep 2
+    printCSR
+  fi	# end x check
+  if [[ $MFOUND -eq 1 ]]; then
+    sendMail
+  fi
 else
 	fatal "Nothing to do!"
 fi	# end common name check
