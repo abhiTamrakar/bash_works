@@ -1,4 +1,4 @@
-# abhixcripts
+# 
 bash scripts for everyday usage
 
 ## generate random passwords
