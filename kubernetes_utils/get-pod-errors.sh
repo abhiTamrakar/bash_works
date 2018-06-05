@@ -1,5 +1,5 @@
 #!/bin/bash
-## AUTHOR: Abhishek Tamrakar
+# AUTHOR: Abhishek Tamrakar
 # EMAIL: abhishek.tamrakar08@gmail.com
 # LICENSE: This program is free software: you can redistribute it and/or modify
 #          it under the terms of the GNU General Public License as published by
@@ -14,6 +14,8 @@
 #          You should have received a copy of the GNU General Public License
 #          along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
+# Copyright (C) 2018 Abhishek Tamrakar
+#
 KUBE_LOC=~/.kube/config
 if [ -e ./base.sh -a -s ./base.sh ]
 then
@@ -22,6 +24,19 @@ else
 fatal "failed to initialize"
 fi
 #
+usage()
+{
+cat < EOF
+
+  USAGE: "${0##*/} </path/to/kube-config>"
+  
+  This program is a free software under the terms of GNU GPL 3.0 License.
+  COPYRIGHT (C) 2018 Abhishek Tamrakar
+
+EOF
+exit 0
+}
+
 for cmd in $KUBE $GET $AWK;
 do
 checkcmd $cmd
@@ -42,8 +57,7 @@ then
 export KUBECONFIG=$1
 elif [ $# -gt 1 ]
 then
-info "${0##*/} </path/to/kube-config>"
-fatal "Not more than 1 argument required."
+usage
 fi
 get_namespaces
 get_pod_errors
