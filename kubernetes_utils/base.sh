@@ -82,7 +82,7 @@ STATE=("${STATE[@]}" \
         )
 done
 
-done< <(kubectl get pods -n $NAMESPACE --ignore-not-found=true -o=custom-columns=NAME:.metadata.name,CONTAINERS:.spec.containers[*].name|sed '1d')
+done< <($KUBE get pods -n $NAMESPACE --ignore-not-found=true -o=custom-columns=NAME:.metadata.name,CONTAINERS:.spec.containers[*].name|sed '1d')
 
 print_table ${STATE[@]}
 done
