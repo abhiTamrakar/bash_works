@@ -44,10 +44,10 @@ fi
 print_table()
 {
 sep='|'
-printf '%s\t%45s\t%17s\n' "POD NAME" "CONTAINER NAME" "NUMBER OF ERROR/EXCEPTION"
+printf '\n%s\t%45s\t%17s\n' "POD NAME" "CONTAINER NAME" "NUMBER OF ERROR/EXCEPTION"
 printf '%s\n' "---------------------------------------------------------------------------"
 printf '%s\n' "$@"| column -s"$sep" -t
-printf '%s\n' "---------------------------------------------------------------------------"
+printf '\n'
 }
 
 get_namespaces()
@@ -84,6 +84,7 @@ done
 
 done< <($KUBE get pods -n $NAMESPACE --ignore-not-found=true -o=custom-columns=NAME:.metadata.name,CONTAINERS:.spec.containers[*].name|sed '1d')
 
-print_table ${STATE[@]}
+print_table ${STATE[@]:-None}
+STATE=()
 done
 }
