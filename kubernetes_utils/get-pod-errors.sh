@@ -26,7 +26,7 @@ fi
 #
 usage()
 {
-cat < EOF
+cat << EOF
 
   USAGE: "${0##*/} </path/to/kube-config>"
   
@@ -44,13 +44,10 @@ done
 #
 
 if [ $# -lt 1 ]; then
-        if [ -e ${KUBE_LOC} -a -s ${KUBE_LOC} ]
+        if [ ! -e ${KUBE_LOC} -a ! -s ${KUBE_LOC} ]
         then
-                export KUBECONFIG=${KUBE_LOC}
-        else
-                info "A readable kube config location is required!!"
-                read -p 'kube-config-location?' KUBE_LOC
-                export KUBECONFIG=${KUBE_LOC}
+               info "A readable kube config location is required!!"
+               usage
         fi
 elif [ $# -eq 1 ]
 then
