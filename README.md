@@ -2,7 +2,7 @@
 bash scripts for everyday usage
 
 ## learn shell scripting with shell mania
-There are few but wuite good scripts, covering almost all basic of shell in that directory.
+There are few but quite good scripts, covering almost all basic of shell in that directory.
 
 ## generate random passwords
 #### Click the image to follow the script in action on youtube
